@@ -1,0 +1,8 @@
+{
+	"files.associations": {
+		"xlib.h": "c",
+		"stdio.h": "c",
+		"math.h": "c",
+		"get_next_line_bonus.h": "c"
+	}
+}
