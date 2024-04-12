@@ -25,43 +25,27 @@
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
 
-SRCS_BASIC = 
+SRCS = get_next_line_bonus.c get_next_line_utils_bonus.c
 
-SRCS_BONUS = 
-
-OBJS_BASIC = $(SRCS_BASIC:.c=.o)
-OBJS_BONUS = $(SRCS_BONUS:.c=.o)
-NAME_BASIC = 
-NAME_BONUS = 
-
-ifndef bonus
-OBJS = $(OBJS_BASIC)
-NAME = $(NAME_BASIC)
-else
-OBJS = $(OBJS_BONUS)
-NAME = $(NAME_BONUS)
-endif
+OBJS = $(SRCS:.c=.o)
+NAME = libft.a
 
 all : $(NAME) 
 
 $(NAME) : $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+	cp libft/$(NAME) ./$(NAME)
+	ar rcs $@ $^
 
 %.o : %.c 
 	$(CC) $(CFLAGS) -c $^
 
 clean :	
-	rm -rf $(OBJS_BASIC) 
-	rm -rf $(OBJS_BONUS)
+	rm -rf $(OBJS) 
 
 fclean : clean
-	rm -rf $(NAME_BASIC)
-	rm -rf $(NAME_BONUS)
+	rm -rf $(NAME)
 
 re : fclean all
 
-bonus :
-	make bonus=1 all
-
-.PHONY : all clean fclean re bonus
+.PHONY : all clean fclean re
 

@@ -20,7 +20,7 @@
 # define MAX_SIZE 1025
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 128
+#  define BUFFER_SIZE 256
 # endif
 
 size_t	get_read_bytes(char *lst, int *is_end);
