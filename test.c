@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "get_next_line_bonus.h"
+// #include "get_next_line_bonus.h"
+#include "fdf.h"
 
 int	main(int argc, char **argv)
 {
@@ -26,12 +27,13 @@ int	main(int argc, char **argv)
 		read = get_next_line(fd);
 		if (!read)
 			break ;
-		// read[ft_strlen(read) - 1] = ' ';
+		if (read[ft_strlen(read) - 1] == '\n')
+			read[ft_strlen(read) - 1] = ' ';
 		s = ft_strjoin(s, read);
 		row++;
 		free(read);
 	}
-	printf("s: \n%s", s);
+	// printf("s: \n%s", s);
 	close(fd);
 	sp = ft_split(s, ' ');
 	total = 0;
@@ -39,6 +41,11 @@ int	main(int argc, char **argv)
 		total++;
 	col = total / row;
 	printf("\nrow, col, total: %d, %d, %d\n", row, col, total);
+	double l1 = 2 * (row - WIDTH / sqrt(3)) / (col - row);
+	double l2 = 2 * (WIDTH / sqrt(3) - col) / (col - row);
+	double l3 = 2 * HEIGHT / (row + col);
+	double l4 = 2 * (row + col - HEIGHT) / (row + col);
+	printf("l1, l2, l3, l4: %lf, %lf, %lf, %lf\n", l1, l2, l3, l4);
 	return (0);
 }
 

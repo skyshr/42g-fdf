@@ -17,8 +17,6 @@
 # include "get_next_line_bonus.h"
 # include <stdio.h>
 # include <fcntl.h>
-// # define __USE_MISC
-// #define __USE_XOPEN
 # include "math.h"
 # define WIDTH 1500
 # define HEIGHT 1000
@@ -38,6 +36,10 @@ typedef struct s_data
 	int		col;
 	int		x;
 	int		y;
+	int		size;
+	int		range_max;
+	int		range_min;
+	int		default_size;
 }		t_data;
 
 typedef struct	s_vars {
