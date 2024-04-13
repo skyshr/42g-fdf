@@ -76,12 +76,6 @@ int	key_hook(int keycode, t_vars *vars)
 // 	return (0);
 // }
 
-// int	expose_hook(int keycode, t_vars *vars)
-// {
-// 	printf("keycode2: %d\n", keycode);
-// 	return (0);
-// }
-
 int	close_mlx(int keycode, t_vars *vars)
 {
 	printf("keycode: %d\n", keycode);
@@ -100,7 +94,10 @@ void			my_mlx_pixel_put(t_data *data, int x, int y, int color)
 	char	*dst;
 
 	dst = data->addr + (y * data->line_length + x * (data->bits_per_pixel / 8));
-	*(unsigned int*)dst = color;
+	if (*(unsigned int*)dst == GY && color == AB)
+		return ;
+	if (*(unsigned int*)dst != color)
+		*(unsigned int*)dst = color;
 }
 
 double	getRadian(int _num)
@@ -119,17 +116,31 @@ void	init_mlx(t_vars *vars)
 	vars->image.y = HEIGHT / 2 - 25 * (vars->image.col + vars->image.row) / 4;
 }
 
-void	draw_z(t_vars *vars, double x, double y, int z)
+void	draw_z(t_vars *vars, double x, double y, int z, double x1, double y1)
 {
-	int	color;
+	double	sign;
+	double	xx;
+	double	yy;
 	
-	for (int k = 0; k <= 10 * z; k++)
+	// printf("x1, y1: %f, %f\n", x1, y1);
+	sign = 1;
+	if (z < 0)
+		sign = -1;
+	xx = x;
+	int flag = 0;
+	int	flag1 = 0;
+	for (int i = 0; i < 25; i++)
 	{
-		double r = (double)(WIDTH - x) / (WIDTH - 1);
-		double g = (double)(y-k) / (HEIGHT - 1);
-		double b = 1;
-		color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
-		my_mlx_pixel_put(&vars->image, x, y - k, color);
+		yy = y + (double)i * y1;
+		for (int k = 0; k < 5 * z; k++)
+		{
+			if (i == 0 || k % 5 == 0)
+				my_mlx_pixel_put(&vars->image, xx, yy, GY);
+			else
+				my_mlx_pixel_put(&vars->image, xx, yy, AB);
+			yy -= sign;
+		}
+		xx += x1;
 	}
 }
 
@@ -141,45 +152,22 @@ void	draw_top(t_vars *vars, double x, double y)
 	
 	xx = x;
 	yy = y;
-	for (int k = 0; k <= 25; k++)
+	for (int i = 0; i <= 25; i++)
 	{
-		double r = (double)(WIDTH - xx) / (WIDTH - 1);
-		double g = (double)(yy) / (HEIGHT - 1);
-		double b = 1;
-		color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
-		my_mlx_pixel_put(&vars->image, xx, yy, color);
-		xx += sqrt(3) / 2;
-		yy += 0.5;
-	}
-	for (int k = 0; k <= 25; k++)
-	{
-		double r = (double)(WIDTH - xx) / (WIDTH - 1);
-		double g = (double)(yy) / (HEIGHT - 1);
-		double b = 1;
-		color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
-		my_mlx_pixel_put(&vars->image, xx, yy, color);
-		xx -= sqrt(3) / 2;
-		yy += 0.5;
-	}
-	for (int k = 0; k <= 25; k++)
-	{
-		double r = (double)(WIDTH - xx) / (WIDTH - 1);
-		double g = (double)(yy) / (HEIGHT - 1);
-		double b = 1;
-		color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
-		my_mlx_pixel_put(&vars->image, xx, yy, color);
-		xx -= sqrt(3) / 2;
-		yy -= 0.5;
-	}
-	for (int k = 0; k <= 25; k++)
-	{
-		double r = (double)(WIDTH - xx) / (WIDTH - 1);
-		double g = (double)(yy) / (HEIGHT - 1);
-		double b = 1;
-		color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
-		my_mlx_pixel_put(&vars->image, xx, yy, color);
-		xx += sqrt(3) / 2;
-		yy -= 0.5;
+		xx = x - (sqrt(3) / 2) * i;
+		yy = y + 0.5 * i;
+		for (int j = 0; j <= 25; j++)
+		{
+			double r = (double)(WIDTH - xx) / (WIDTH - 1);
+			double g = (double)(yy) / (HEIGHT - 1);
+			double b = 1;
+			color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
+			if (j == 0 || j == 25 || i == 0 || i == 25)
+				color = WH;
+			my_mlx_pixel_put(&vars->image, xx, yy, color);
+			xx += sqrt(3) / 2;
+			yy += 0.5;
+		}
 	}
 }
 
@@ -188,11 +176,13 @@ void	draw(t_vars *vars, double x, double y, int z)
 	if (!z)
 		return ;
 	// printf("x, y, z: %f, %f, %d\n", x, y, z);
-	draw_z(vars, x, y, z);
-	draw_z(vars, x + 25 * sqrt(3) / 2, y + 25 / 2, z);
-	draw_z(vars, x - 25 * sqrt(3) / 2, y + 25 / 2, z);
-	draw_z(vars, x, y + 25, z);
-	draw_top(vars, x, y - 10 * z);
+	// draw_z(vars, x, y, z, sqrt(3) / 2, 0.5);
+	// draw_z(vars, x + 25 * sqrt(3) / 2, y + 12.5, z, -sqrt(3) / 2, 0.5);
+	draw_z(vars, x, y, z, sqrt(3) / 2, 0.5);
+	draw_z(vars, x - 25 * sqrt(3) / 2, y + 12.5, z, sqrt(3) / 2, -0.5);
+	draw_z(vars, x + 25 * sqrt(3) / 2, y + 12.5, z, -sqrt(3) / 2, 0.5);
+	draw_z(vars, x, y + 25, z, -sqrt(3) / 2, -0.5);
+	draw_top(vars, x, y - 5 * z);
 }
 
 int	main(int argc, char **argv)
@@ -209,13 +199,13 @@ int	main(int argc, char **argv)
 	int i = vars.image.y;
 	for (int j = 0; j <= 25 * vars.image.col; j++)
 	{
-		double r = (double)(WIDTH - j) / (WIDTH - 1);
-		double g = (double)(i) / (HEIGHT - 1);
-		double b = 1;
-		color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
 		double diag = j;
 		double x = diag * cos(getRadian(30)) + vars.image.x;
-		double y = diag * sin(getRadian(30)) + vars.image.y; // 30도
+		double y = diag * sin(getRadian(30)) + vars.image.y;
+		double r = (double)(WIDTH - x) / (WIDTH - 1);
+		double g = (double)(y) / (HEIGHT - 1);
+		double b = 1;
+		color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
 		// if (j == 150 || j == WIDTH - 240)
 		// 	printf("x, y: %f %f\n", x, y);
 		my_mlx_pixel_put(&vars.image, x, y, color);
@@ -226,6 +216,10 @@ int	main(int argc, char **argv)
 				double diag1 = k;
 				double x1 = x + diag1 * cos(getRadian(150));
 				double y1 = y + diag1 * sin(getRadian(150));
+				r = (double)(WIDTH - x1) / (WIDTH - 1);
+				g = (double)(y1) / (HEIGHT - 1);
+				b = 1; 
+				color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
 				my_mlx_pixel_put(&vars.image, x1, y1, color);
 				if (j == 0 && k % 25 == 0)
 				{
@@ -233,7 +227,11 @@ int	main(int argc, char **argv)
 					{
 						double diag2 = l;
 						double x2 = x1 + diag2 * cos(getRadian(30));
-						double y2 = y1 + diag2 * sin(getRadian(30)); 
+						double y2 = y1 + diag2 * sin(getRadian(30));
+						r = (double)(WIDTH - x2) / (WIDTH - 1);
+						g = (double)(y2) / (HEIGHT - 1);
+						b = 1; 
+						color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
 						my_mlx_pixel_put(&vars.image, x2, y2, color);
 					}
 				}
@@ -249,11 +247,12 @@ int	main(int argc, char **argv)
 		for (int j = 0; j < vars.image.col; j++)
 		{
 			// printf("i, j : %d %d\n", i, j);
-			x += 25 * (sqrt(3) / 2);
-			y += 25 * 0.5;
 			draw(&vars, x, y, ft_atoi(vars.image.read[idx++]));
+			x += 25 * (sqrt(3) / 2);
+			y += 12.5;
 		}
 	}
+	printf("%f, %f\n", (sqrt(3) / 2), 0.5);
 	mlx_put_image_to_window(vars.mlx, vars.win, vars.image.img, 0, 0);
 	mlx_hook(vars.win, 17, 1L<<0, close_mlx, &vars);
 	mlx_key_hook(vars.win, key_hook, &vars);

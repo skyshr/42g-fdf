@@ -20,8 +20,11 @@
 // # define __USE_MISC
 // #define __USE_XOPEN
 # include "math.h"
-# define WIDTH 1200
-# define HEIGHT 800
+# define WIDTH 1500
+# define HEIGHT 1000
+# define WH 16777215
+# define GY 0xbebebe
+# define AB 0x191970
 
 typedef struct s_data
 {

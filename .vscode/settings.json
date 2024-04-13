@@ -6,6 +6,7 @@
 		"get_next_line_bonus.h": "c",
 		"mlx_int.h": "c",
 		"mathcalls-narrow.h": "c",
-		"libft.h": "c"
+		"libft.h": "c",
+		"fcntl.h": "c"
 	}
 }
