@@ -22,7 +22,9 @@
 # define HEIGHT 1000
 # define WH 16777215
 # define GY 0xbebebe
+// # define AB 0xfffff0
 # define AB 0x191970
+// "ivory" , 0xfffff0
 
 typedef struct s_data
 {
@@ -37,9 +39,11 @@ typedef struct s_data
 	int		x;
 	int		y;
 	int		size;
+	int		z_size;
 	int		range_max;
 	int		range_min;
 	int		default_size;
+	int		default_z_size;
 }		t_data;
 
 typedef struct	s_vars {
@@ -47,5 +51,7 @@ typedef struct	s_vars {
 	void			*win;
 	struct s_data	image;
 }				t_vars;
+
+void	reset_img(t_vars *vars);
 
 #endif

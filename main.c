@@ -19,7 +19,7 @@ void	init_data(int argc, char **argv, t_vars *vars)
 	int 	fd;
 	int		total;
 
-	s = 0;
+	s = NULL;
 	if (argc != 2)
 	{
 		printf("Nothing turned in.. Exiting program.\n");
@@ -28,59 +28,45 @@ void	init_data(int argc, char **argv, t_vars *vars)
 	fd = open(argv[1], O_RDONLY);
 	vars->image.row = 0;
 	int i = 0;
-	// printf("111111111111111111111\n");
 	while (1)
 	{
 		read = get_next_line(fd);
 		if (!read)
 			break ;
-		// printf("%d: %s", i++, read);
 		if (read[ft_strlen(read) - 1] == '\n')
 			read[ft_strlen(read) - 1] = ' ';
-		s = ft_strjoin(s, read);
+		s = ft_strjoin(&s, read);
 		vars->image.row++;
 		free(read);
-		// sleep(1);
 	}
-	// printf("3333333333333333333333333333\n");
 	close(fd);
-	// printf("s: %s", s);
-	// printf("s: %s");
 	vars->image.read = ft_split(s, ' ');
+	free(s);
+	s = NULL;
 	total = 0;
 	while (vars->image.read[total])
 		total++;
-	// printf("row, total: %d, %d\n", vars->image.row, total);
 	vars->image.col = total / vars->image.row;
-	// printf("444444444444444444444444444444\n");
-	// printf("\nrow, col, total: %d, %d, %d\n", row, col, total);
 }
 
 int	key_hook(int keycode, t_vars *vars)
 {
+	printf("keycode: %d\n", keycode);
 	if (keycode == 65307)
+		((t_xvar *)vars->mlx)->end_loop = 1;
+	if (keycode == 114)
 	{
-		// ((t_xvar *)vars->mlx)->end_loop = 1;
-		free(vars->image.img);
-		free(vars->image.addr);
-		mlx_destroy_window(vars->mlx, vars->win);
-		exit(0);
+		vars->image.size = vars->image.default_size;
+		vars->image.z_size = vars->image.default_z_size;
+		reset_img(vars);
 	}
-	// printf("keycode: %d\n", keycode);
 	return (0);
 }
 
-int	close_mlx(int keycode, t_vars *vars)
+int	close_mlx(t_vars *vars)
 {
-	printf("keycode: %d\n", keycode);
-	free(vars->image.img);
-	free(vars->image.addr);
-	mlx_destroy_window(vars->mlx, vars->win);
-	// ((t_xvar *)vars->mlx)->end_loop = 1;
-	// free(vars->mlx);
-	// free(vars->win);
-	exit(0);
-	// return (0);
+	key_hook(65307, vars);
+	return (0);
 }
 
 void	my_mlx_pixel_put(t_data *data, int x, int y, int color)
@@ -94,7 +80,6 @@ void	my_mlx_pixel_put(t_data *data, int x, int y, int color)
 		return ;
 	if (*(unsigned int*)dst != color)
 		*(unsigned int*)dst = color;
-	// printf("drawwwwwwwwwwwwwwwwwwwwwwwwwwww\n");
 }
 
 double	getRadian(int _num)
@@ -135,9 +120,10 @@ void	calculate_size(t_vars *vars)
 	vars->image.default_size = vars->image.size;
 	vars->image.range_max = vars->image.size * (3 + 0.05 * (range_max - vars->image.size));
 	vars->image.range_min = ft_max(vars->image.size / 10, 1);
-	printf("range_max: %f\n", range_max);
-	printf("size: %d\n", vars->image.size);
-	printf("range: %d, %d\n", vars->image.range_max, vars->image.range_min);
+	vars->image.z_size = 0;
+	// printf("range_max: %f\n", range_max);
+	// printf("size: %d\n", vars->image.size);
+	// printf("range: %d, %d\n", vars->image.range_max, vars->image.range_min);
 }
 
 void	init_mlx(t_vars *vars)
@@ -150,7 +136,34 @@ void	init_mlx(t_vars *vars)
 	calculate_size(vars);
 	vars->image.x = WIDTH / 2 + vars->image.size * (vars->image.row - vars->image.col) * (sqrt(3) / 4);
 	vars->image.y = HEIGHT / 2 - vars->image.size * (vars->image.col + vars->image.row) / 4;
-	// printf("l1, l2, l3, l4: %lf, %lf, %lf, %lf\n", l1, l2, l3, l4);
+	int	idx = 0;
+	int	t;
+
+	for (int i = 0; i < vars->image.row; i++)
+	{
+		double y = vars->image.y + i * 0.5 * vars->image.size;
+		for (int j = 0; j < vars->image.col; j++)
+		{
+			int k = ft_atoi(vars->image.read[idx++]);
+			if (k != 0)
+			{
+				if (k < 0)
+					t = (HEIGHT - y - vars->image.size) / abs(k);
+				else
+					t = y / k;
+				if (vars->image.z_size == 0)
+					vars->image.z_size = t;
+				else
+					vars->image.z_size = ft_min(vars->image.z_size, t);
+			}
+			y += vars->image.size * 0.5;
+		}
+	}
+	if (vars->image.z_size > 30)
+		vars->image.z_size = 30;
+	else if (vars->image.z_size > 10)
+		vars->image.z_size *= 0.7;
+	vars->image.default_z_size = vars->image.z_size;
 }
 
 void	draw_z(t_vars *vars, double x, double y, int z, double x1, double y1)
@@ -168,9 +181,9 @@ void	draw_z(t_vars *vars, double x, double y, int z, double x1, double y1)
 	for (int i = 0; i < size; i++)
 	{
 		yy = y + i * y1;
-		for (int k = 0; k < 5 * z * sign; k++)
+		for (int k = 0; k < vars->image.z_size * z * sign; k++)
 		{
-			if (i == 0 || k % 5 == 0)
+			if (i == 0 || k % vars->image.z_size == 0)
 				my_mlx_pixel_put(&vars->image, xx, yy, GY);
 			else
 				my_mlx_pixel_put(&vars->image, xx, yy, AB);
@@ -215,13 +228,12 @@ void	draw_3D(t_vars *vars, double x, double y, int z)
 
 	if (!z)
 		return ;
-	// printf("3333333333333333333333333333\n");
 	size = vars->image.size;
 	draw_z(vars, x, y, z, sqrt(3) / 2, 0.5);
 	draw_z(vars, x - size * sqrt(3) / 2, y + size * 0.5, z, sqrt(3) / 2, -0.5);
 	draw_z(vars, x + size * sqrt(3) / 2, y + size * 0.5, z, -sqrt(3) / 2, 0.5);
 	draw_z(vars, x, y + size, z, -sqrt(3) / 2, -0.5);
-	draw_top(vars, x, y - 5 * z);
+	draw_top(vars, x, y - vars->image.z_size * z);
 }
 
 void	draw(t_vars *vars)
@@ -284,9 +296,22 @@ void	draw(t_vars *vars)
 	}
 }
 
+void	reset_img(t_vars *vars)
+{
+	vars->image.x = WIDTH / 2 + vars->image.size * (vars->image.row - vars->image.col) * (sqrt(3) / 4);
+	vars->image.y = HEIGHT / 2 - vars->image.size * (vars->image.col + vars->image.row) / 4;
+	mlx_destroy_image(vars->mlx, vars->image.img);
+	vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
+	vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
+					&vars->image.line_length, &vars->image.endian);
+	draw(vars);
+	mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+}
+
 void	zoom_io(t_vars *vars, int keycode)
 {
-	int	size;
+	int		size;
+	char	*dst;
 
 	size = vars->image.size;
 	if (keycode == 4)
@@ -299,14 +324,21 @@ void	zoom_io(t_vars *vars, int keycode)
 		vars->image.size = ft_max(vars->image.size * 0.7, vars->image.range_min);
 	if (size == vars->image.size)
 		return ;
-	vars->image.x = WIDTH / 2 + vars->image.size * (vars->image.row - vars->image.col) * (sqrt(3) / 4);
-	vars->image.y = HEIGHT / 2 - vars->image.size * (vars->image.col + vars->image.row) / 4;
-	mlx_clear_window(vars->mlx, vars->win);
-	vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
-	vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
-					&vars->image.line_length, &vars->image.endian);
-	draw(vars);
-	mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+	if (keycode == 4)
+	{
+		if (vars->image.z_size >= 5)
+			vars->image.z_size *= 1.3;
+		else
+			vars->image.z_size++;
+	}
+	else
+	{
+		if (vars->image.z_size >= 5)
+			vars->image.z_size *= 0.7;
+		else if (vars->image.z_size > 1)
+			vars->image.z_size--;
+	}
+	reset_img(vars);
 }
 
 int	mouse_hook(int keycode, int x, int y, t_vars *vars)
@@ -324,16 +356,17 @@ int	main(int argc, char **argv)
 	init_mlx(&vars);
 	draw(&vars);
 	mlx_put_image_to_window(vars.mlx, vars.win, vars.image.img, 0, 0);
-	// mlx_hook(vars.win, 17, 1L<<0, close_mlx, &vars);
+	mlx_hook(vars.win, 17, 1L<<0, close_mlx, &vars);
 	mlx_key_hook(vars.win, key_hook, &vars);
 	mlx_mouse_hook(vars.win, mouse_hook, &vars);
-	// mlx_mouse_hook(vars.win, mouse_hook, 0);
-	// mlx_expose_hook(vars.win, expose_hook, &vars);
 	mlx_loop(vars.mlx);
-	// free(vars.mlx);
-	// free(vars.win);
-	// free(image.img);
-	// free(image.addr);
+	for (int i = 0; i < vars.image.row * vars.image.col; i++)
+		free(vars.image.read[i]);
+	free(vars.image.read);
+	mlx_destroy_image(vars.mlx, vars.image.img);
+	mlx_destroy_window(vars.mlx, vars.win);
+	mlx_destroy_display(vars.mlx);
+	free(vars.mlx);
 	return 0;
 }
 
