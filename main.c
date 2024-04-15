@@ -91,6 +91,66 @@ int	key_hook(int keycode, t_vars *vars)
 		set_vector(&vars->image);
 		reset_img(vars);
 	}
+	else if (keycode == 65431)
+	{
+		translate_y_pos(&vars->image);
+		mlx_destroy_image(vars->mlx, vars->image.img);
+		vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
+		vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
+						&vars->image.line_length, &vars->image.endian);
+		draw(vars);
+		mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+	}
+	else if (keycode == 65433)
+	{
+		translate_y_neg(&vars->image);
+		mlx_destroy_image(vars->mlx, vars->image.img);
+		vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
+		vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
+						&vars->image.line_length, &vars->image.endian);
+		draw(vars);
+		mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+	}
+	else if (keycode == 65430)
+	{
+		translate_x_pos(&vars->image);
+		mlx_destroy_image(vars->mlx, vars->image.img);
+		vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
+		vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
+						&vars->image.line_length, &vars->image.endian);
+		draw(vars);
+		mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+	}
+	else if (keycode == 65432)
+	{
+		translate_x_neg(&vars->image);
+		mlx_destroy_image(vars->mlx, vars->image.img);
+		vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
+		vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
+						&vars->image.line_length, &vars->image.endian);
+		draw(vars);
+		mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+	}
+	else if (keycode == 65434)
+	{
+		translate_z_pos(&vars->image);
+		mlx_destroy_image(vars->mlx, vars->image.img);
+		vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
+		vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
+						&vars->image.line_length, &vars->image.endian);
+		draw(vars);
+		mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+	}
+	else if (keycode == 65436)
+	{
+		translate_z_neg(&vars->image);
+		mlx_destroy_image(vars->mlx, vars->image.img);
+		vars->image.img = mlx_new_image(vars->mlx, WIDTH, HEIGHT);
+		vars->image.addr = mlx_get_data_addr(vars->image.img, &vars->image.bits_per_pixel, \
+						&vars->image.line_length, &vars->image.endian);
+		draw(vars);
+		mlx_put_image_to_window(vars->mlx, vars->win, vars->image.img, 0, 0);
+	}
 	return (0);
 }
 
@@ -163,6 +223,42 @@ void	print_vector(t_data *image)
 	printf("vector_x: %f, %f\n", image->vector_x[0], image->vector_x[1]);
 	printf("vector_y: %f, %f\n", image->vector_y[0], image->vector_y[1]);
 	printf("vector_z: %f, %f\n", image->vector_z[0], image->vector_z[1]);
+}
+
+void	translate_x_pos(t_data *image)
+{
+	image->x -= 5 * image->vector_x[0];
+	image->y -= 5 * image->vector_x[1];
+}
+
+void	translate_x_neg(t_data *image)
+{
+	image->x += 5 * image->vector_x[0];
+	image->y += 5 * image->vector_x[1];
+}
+
+void	translate_y_pos(t_data *image)
+{
+	image->x -= 5 * image->vector_y[0];
+	image->y -= 5 * image->vector_y[1];
+}
+
+void	translate_y_neg(t_data *image)
+{
+	image->x += 5 * image->vector_y[0];
+	image->y += 5 * image->vector_y[1];
+}
+
+void	translate_z_pos(t_data *image)
+{
+	image->x += 5 * image->vector_z[0];
+	image->y += 5 * image->vector_z[1];
+}
+
+void	translate_z_neg(t_data *image)
+{
+	image->x -= 5 * image->vector_z[0];
+	image->y -= 5 * image->vector_z[1];
 }
 
 void	rotate_z_pos(t_data *image)
@@ -407,15 +503,15 @@ void	draw(t_vars *vars)
 	int idx = 0;
 	for (int i = 0; i < vars->image.row; i++)
 	{
-		double x = vars->image.x - size * (sqrt(3) / 2) * i;
-		double y = vars->image.y + size * 0.5 * i;
+		double x = vars->image.x + size * vars->image.vector_y[0] * i;
+		double y = vars->image.y + size * vars->image.vector_y[1] * i;
 		for (int j = 0; j < vars->image.col; j++)
 		{
 			int	temp = vars->image.read[idx++];
 			if (temp < 0)
 				draw_3D(vars, x, y, temp);
-			x += size * (sqrt(3) / 2);
-			y += size * 0.5;
+			x += size * vars->image.vector_x[0];
+			y += size * vars->image.vector_x[1];
 		}
 	}
 	for (int j = 0; j <= size * vars->image.col; j++)

@@ -62,6 +62,12 @@ typedef struct	s_vars {
 
 void	reset_img(t_vars *vars);
 void	print_vector(t_data *image);
+void	translate_x_pos(t_data *image);
+void	translate_x_neg(t_data *image);
+void	translate_y_pos(t_data *image);
+void	translate_y_neg(t_data *image);
+void	translate_z_pos(t_data *image);
+void	translate_z_neg(t_data *image);
 void	rotate_z_pos(t_data *image);
 void	rotate_z_neg(t_data *image);
 void	rotate_x_pos(t_data *image);
@@ -69,5 +75,6 @@ void	rotate_x_neg(t_data *image);
 void	rotate_y_pos(t_data *image);
 void	rotate_y_neg(t_data *image);
 void	set_vector(t_data *image);
+void	draw(t_vars *vars);
 
 #endif
