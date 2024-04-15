@@ -27,7 +27,6 @@ void	init_data(int argc, char **argv, t_vars *vars)
 	}
 	fd = open(argv[1], O_RDONLY);
 	vars->image.row = 0;
-	int i = 0;
 	while (1)
 	{
 		read = get_next_line(fd);
@@ -40,13 +39,14 @@ void	init_data(int argc, char **argv, t_vars *vars)
 		free(read);
 	}
 	close(fd);
-	vars->image.read = ft_split(s, ' ');
+	if (!s)
+		exit(0);
+	vars->image.read = ft_split(s, ' ', &vars->image.total);
 	free(s);
 	s = NULL;
-	total = 0;
-	while (vars->image.read[total])
-		total++;
-	vars->image.col = total / vars->image.row;
+	// printf("total: %d\n", vars->image.total);
+	vars->image.col = vars->image.total / vars->image.row;
+	printf("row, col, total: %d, %d, %d\n", vars->image.row, vars->image.col, vars->image.total);
 }
 
 int	key_hook(int keycode, t_vars *vars)
@@ -76,8 +76,8 @@ void	my_mlx_pixel_put(t_data *data, int x, int y, int color)
 	if (x < 0 || x > WIDTH || y < 0 || y > HEIGHT)
 		return;
 	dst = data->addr + (y * data->line_length + x * (data->bits_per_pixel / 8));
-	if (*(unsigned int*)dst == GY && color == AB)
-		return ;
+	// if (data->dir*(unsigned int*)dst != 0x0 && color == AB)
+	// 	return ;
 	if (*(unsigned int*)dst != color)
 		*(unsigned int*)dst = color;
 }
@@ -144,7 +144,7 @@ void	init_mlx(t_vars *vars)
 		double y = vars->image.y + i * 0.5 * vars->image.size;
 		for (int j = 0; j < vars->image.col; j++)
 		{
-			int k = ft_atoi(vars->image.read[idx++]);
+			int k = vars->image.read[idx++];
 			if (k != 0)
 			{
 				if (k < 0)
@@ -183,13 +183,34 @@ void	draw_z(t_vars *vars, double x, double y, int z, double x1, double y1)
 		yy = y + i * y1;
 		for (int k = 0; k < vars->image.z_size * z * sign; k++)
 		{
+			if (k == 0)
+			{
+				yy -= sign;
+				continue ;
+			}
 			if (i == 0 || k % vars->image.z_size == 0)
 				my_mlx_pixel_put(&vars->image, xx, yy, GY);
+			else if ((i == 1 && (int)xx == (int)(xx-x1)) || (i == size - 1 && (int)xx == (int)(xx+x1)))
+			{
+				yy -= sign;
+				continue ;
+			}
 			else
 				my_mlx_pixel_put(&vars->image, xx, yy, AB);
 			yy -= sign;
 		}
 		xx += x1;
+	}
+	if (vars->image.dir == -1)
+	{
+		xx = x;
+		yy = y + vars->image.z_size * z * sign;
+		for (int i = 0; i < size; i++)
+		{
+			my_mlx_pixel_put(&vars->image, xx, yy, GY);
+			xx += x1;
+			yy += y1;
+		}
 	}
 }
 
@@ -207,13 +228,13 @@ void	draw_top(t_vars *vars, double x, double y)
 	{
 		xx = x - (sqrt(3) / 2) * i;
 		yy = y + 0.5 * i;
-		for (int j = 0; j <= size; j++)
+		for (int j = 0; j < size; j++)
 		{
 			double r = (double)(WIDTH - xx) / (WIDTH - 1);
 			double g = (double)(yy) / (HEIGHT - 1);
 			double b = 1;
 			color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
-			if (j == 0 || j == size || i == 0 || i == size)
+			if (j == 0 || j == size - 1 || i == 0 || i == size)
 				color = WH;
 			my_mlx_pixel_put(&vars->image, xx, yy, color);
 			xx += sqrt(3) / 2;
@@ -229,11 +250,15 @@ void	draw_3D(t_vars *vars, double x, double y, int z)
 	if (!z)
 		return ;
 	size = vars->image.size;
+	vars->image.dir = z / abs(z);
+	if (z < 0)
+		draw_top(vars, x, y - vars->image.z_size * z);	
 	draw_z(vars, x, y, z, sqrt(3) / 2, 0.5);
 	draw_z(vars, x - size * sqrt(3) / 2, y + size * 0.5, z, sqrt(3) / 2, -0.5);
 	draw_z(vars, x + size * sqrt(3) / 2, y + size * 0.5, z, -sqrt(3) / 2, 0.5);
 	draw_z(vars, x, y + size, z, -sqrt(3) / 2, -0.5);
-	draw_top(vars, x, y - vars->image.z_size * z);
+	if (z > 0)
+		draw_top(vars, x, y - vars->image.z_size * z);
 }
 
 void	draw(t_vars *vars)
@@ -243,6 +268,20 @@ void	draw(t_vars *vars)
 
 	int i = vars->image.y;
 	size = vars->image.size;
+	int idx = 0;
+	for (int i = 0; i < vars->image.row; i++)
+	{
+		double x = vars->image.x - size * (sqrt(3) / 2) * i;
+		double y = vars->image.y + size * 0.5 * i;
+		for (int j = 0; j < vars->image.col; j++)
+		{
+			int	temp = vars->image.read[idx++];
+			if (temp < 0)
+				draw_3D(vars, x, y, temp);
+			x += size * (sqrt(3) / 2);
+			y += size * 0.5;
+		}
+	}
 	for (int j = 0; j <= size * vars->image.col; j++)
 	{
 		double diag = j;
@@ -282,14 +321,16 @@ void	draw(t_vars *vars)
 			}
 		}
 	}
-	int idx = 0;
+	idx = 0;
 	for (int i = 0; i < vars->image.row; i++)
 	{
 		double x = vars->image.x - size * (sqrt(3) / 2) * i;
 		double y = vars->image.y + size * 0.5 * i;
 		for (int j = 0; j < vars->image.col; j++)
 		{
-			draw_3D(vars, x, y, ft_atoi(vars->image.read[idx++]));
+			int	temp = vars->image.read[idx++];
+			if (temp > 0)
+				draw_3D(vars, x, y, temp);
 			x += size * (sqrt(3) / 2);
 			y += size * 0.5;
 		}
@@ -354,14 +395,15 @@ int	main(int argc, char **argv)
 
 	init_data(argc, argv, &vars);
 	init_mlx(&vars);
+	// printf("%d, %d\n", vars.image.bits_per_pixel, vars.image.line_length);
 	draw(&vars);
 	mlx_put_image_to_window(vars.mlx, vars.win, vars.image.img, 0, 0);
 	mlx_hook(vars.win, 17, 1L<<0, close_mlx, &vars);
 	mlx_key_hook(vars.win, key_hook, &vars);
 	mlx_mouse_hook(vars.win, mouse_hook, &vars);
 	mlx_loop(vars.mlx);
-	for (int i = 0; i < vars.image.row * vars.image.col; i++)
-		free(vars.image.read[i]);
+	// for (int i = 0; i < vars.image.row * vars.image.col; i++)
+	// 	free(vars.image.read[i]);
 	free(vars.image.read);
 	mlx_destroy_image(vars.mlx, vars.image.img);
 	mlx_destroy_window(vars.mlx, vars.win);

@@ -33,7 +33,7 @@ typedef struct s_data
 	int		bits_per_pixel;
 	int		line_length;
 	int		endian;
-	char	**read;
+	int		*read;
 	int		row;
 	int		col;
 	int		x;
@@ -44,6 +44,8 @@ typedef struct s_data
 	int		range_min;
 	int		default_size;
 	int		default_z_size;
+	int		dir;
+	int		total;
 }		t_data;
 
 typedef struct	s_vars {
