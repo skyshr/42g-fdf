@@ -54,10 +54,41 @@ int	key_hook(int keycode, t_vars *vars)
 	printf("keycode: %d\n", keycode);
 	if (keycode == 65307)
 		((t_xvar *)vars->mlx)->end_loop = 1;
-	if (keycode == 114)
+	else if (keycode == 97)
+	{
+		rotate_x_pos(&vars->image);
+		reset_img(vars);
+	}
+	else if (keycode == 100)
+	{
+		rotate_x_neg(&vars->image);
+		reset_img(vars);
+	}
+	else if (keycode == 115)
+	{
+		rotate_y_pos(&vars->image);
+		reset_img(vars);
+	}
+	else if (keycode == 119)
+	{
+		rotate_y_neg(&vars->image);
+		reset_img(vars);
+	}
+	else if (keycode == 122)
+	{
+		rotate_z_pos(&vars->image);
+		reset_img(vars);
+	}
+	else if (keycode == 99)
+	{
+		rotate_z_neg(&vars->image);
+		reset_img(vars);
+	}
+	else if (keycode == 114)
 	{
 		vars->image.size = vars->image.default_size;
 		vars->image.z_size = vars->image.default_z_size;
+		set_vector(&vars->image);
 		reset_img(vars);
 	}
 	return (0);
@@ -287,26 +318,28 @@ void	draw_z(t_vars *vars, double x, double y, int z, double x1, double y1)
 		{
 			if (k == 0)
 			{
-				yy -= sign;
+				xx += sign * vars->image.vector_z[0];
+				yy += sign * vars->image.vector_z[1];
 				continue ;
 			}
 			if (i == 0 || k % vars->image.z_size == 0)
 				my_mlx_pixel_put(&vars->image, xx, yy, GY);
 			else if ((i == 1 && (int)xx == (int)(xx-x1)) || (i == size - 1 && (int)xx == (int)(xx+x1)))
 			{
-				yy -= sign;
+				xx += sign * vars->image.vector_z[0];
+				yy += sign * vars->image.vector_z[1];
 				continue ;
 			}
 			else
 				my_mlx_pixel_put(&vars->image, xx, yy, AB);
-			yy -= sign;
+			xx += sign * vars->image.vector_z[0];
+			yy += sign * vars->image.vector_z[1];
 		}
-		xx += x1;
 	}
 	if (vars->image.dir == -1)
 	{
-		xx = x;
-		yy = y + vars->image.z_size * z * sign;
+		xx = x + vars->image.z_size * z * vars->image.vector_z[0];
+		yy = y + vars->image.z_size * z * vars->image.vector_z[1];
 		for (int i = 0; i < size; i++)
 		{
 			my_mlx_pixel_put(&vars->image, xx, yy, GY);
@@ -354,13 +387,14 @@ void	draw_3D(t_vars *vars, double x, double y, int z)
 	size = vars->image.size;
 	vars->image.dir = z / abs(z);
 	if (z < 0)
-		draw_top(vars, x, y - vars->image.z_size * z);	
+		draw_top(vars, x + vars->image.z_size * z * vars->image.vector_z[0], y + vars->image.z_size * z * vars->image.vector_z[1]);	
 	draw_z(vars, x, y, z, vars->image.vector_x[0], vars->image.vector_x[1]);
-	draw_z(vars, x + size * vars->image.vector_y[0], y + size * vars->image.vector_y[1], z, sqrt(3) / 2, -0.5);
-	draw_z(vars, x + size * sqrt(3) / 2, y + size * 0.5, z, -sqrt(3) / 2, 0.5);
-	draw_z(vars, x, y + size, z, -sqrt(3) / 2, -0.5);
+	draw_z(vars, x + size * vars->image.vector_y[0], y + size * vars->image.vector_y[1], z, -vars->image.vector_y[0], -vars->image.vector_y[1]);
+	draw_z(vars, x + size * vars->image.vector_x[0], y + size * vars->image.vector_x[1], z, vars->image.vector_y[0], vars->image.vector_y[1]);
+	draw_z(vars, x, y + size, z, -vars->image.vector_x[0], -vars->image.vector_x[1]);
 	if (z > 0)
-		draw_top(vars, x, y - vars->image.z_size * z);
+		draw_top(vars, x + vars->image.z_size * z * vars->image.vector_z[0], y + vars->image.z_size * z * vars->image.vector_z[1]);	
+		// draw_top(vars, x, y  vars->image.z_size * z);
 }
 
 void	draw(t_vars *vars)
@@ -416,7 +450,7 @@ void	draw(t_vars *vars)
 						r = (double)(WIDTH - x2) / (WIDTH - 1);
 						g = (double)(y2) / (HEIGHT - 1);
 						b = 1; 
-						color = ((int)(255.999 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
+						color = ((int)(256.0 * r) << 16) + ((int)(255.999 * g) << 8) + ((int)(255.999 * b));
 						my_mlx_pixel_put(&vars->image, x2, y2, color);
 					}
 				}
