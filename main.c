@@ -126,6 +126,100 @@ void	calculate_size(t_vars *vars)
 	// printf("range: %d, %d\n", vars->image.range_max, vars->image.range_min);
 }
 
+void	print_vector(t_data *image)
+{
+	printf("x, y, z: %d, %d, %d\n", image->angle_x, image->angle_y, image->angle_z);
+	printf("vector_x: %f, %f\n", image->vector_x[0], image->vector_x[1]);
+	printf("vector_y: %f, %f\n", image->vector_y[0], image->vector_y[1]);
+	printf("vector_z: %f, %f\n", image->vector_z[0], image->vector_z[1]);
+}
+
+void	rotate_z_pos(t_data *image)
+{
+	printf("\n\n rotate_z_pos \n");
+	image->angle_x = (image->angle_x + 30) % 360;
+	image->angle_y = (image->angle_y + 30) % 360;
+	image->vector_x[0] = cos(getRadian(image->angle_x));
+	image->vector_x[1] = sin(getRadian(image->angle_x));
+	image->vector_y[0] = cos(getRadian(image->angle_y));
+	image->vector_y[1] = sin(getRadian(image->angle_y));
+	print_vector(image);
+}
+
+void	rotate_z_neg(t_data *image)
+{
+	printf("\n\n rotate_z_neg \n");
+	image->angle_x = (image->angle_x + 330) % 360;
+	image->angle_y = (image->angle_y + 330) % 360;
+	image->vector_x[0] = cos(getRadian(image->angle_x));
+	image->vector_x[1] = sin(getRadian(image->angle_x));
+	image->vector_y[0] = cos(getRadian(image->angle_y));
+	image->vector_y[1] = sin(getRadian(image->angle_y));
+	print_vector(image);
+}
+
+void	rotate_x_pos(t_data *image)
+{
+	printf("\n\n rotate_x_pos \n");
+	image->angle_y = (image->angle_y + 30) % 360;
+	image->angle_z = (image->angle_z + 30) % 360;
+	image->vector_y[0] = cos(getRadian(image->angle_y));
+	image->vector_y[1] = sin(getRadian(image->angle_y));
+	image->vector_z[0] = cos(getRadian(image->angle_z));
+	image->vector_z[1] = sin(getRadian(image->angle_z));
+	print_vector(image);
+}
+
+void	rotate_x_neg(t_data *image)
+{
+	printf("\n\n rotate_x_neg \n");
+	image->angle_y = (image->angle_y + 330) % 360;
+	image->angle_z = (image->angle_z + 330) % 360;
+	image->vector_y[0] = cos(getRadian(image->angle_y));
+	image->vector_y[1] = sin(getRadian(image->angle_y));
+	image->vector_z[0] = cos(getRadian(image->angle_z));
+	image->vector_z[1] = sin(getRadian(image->angle_z));
+	print_vector(image);
+}
+
+void	rotate_y_pos(t_data *image)
+{
+	printf("\n\n rotate_y_pos \n");
+	image->angle_x = (image->angle_x + 30) % 360;
+	image->angle_z = (image->angle_z + 30) % 360;
+	image->vector_x[0] = cos(getRadian(image->angle_x));
+	image->vector_x[1] = sin(getRadian(image->angle_x));
+	image->vector_z[0] = cos(getRadian(image->angle_z));
+	image->vector_z[1] = sin(getRadian(image->angle_z));
+	print_vector(image);
+}
+
+void	rotate_y_neg(t_data *image)
+{
+	printf("\n\n rotate_y_neg \n");
+	image->angle_x = (image->angle_x + 330) % 360;
+	image->angle_z = (image->angle_z + 330) % 360;
+	image->vector_x[0] = cos(getRadian(image->angle_x));
+	image->vector_x[1] = sin(getRadian(image->angle_x));
+	image->vector_z[0] = cos(getRadian(image->angle_z));
+	image->vector_z[1] = sin(getRadian(image->angle_z));
+	print_vector(image);
+}
+
+void	set_vector(t_data *image)
+{
+	image->vector_x[0] = cos(getRadian(30));
+	image->vector_x[1] = sin(getRadian(30));
+	image->vector_y[0] = cos(getRadian(150));
+	image->vector_y[1] = sin(getRadian(150));
+	image->vector_z[0] = cos(getRadian(270));
+	image->vector_z[1] = sin(getRadian(270));
+	image->angle_x = 30;
+	image->angle_y = 150;
+	image->angle_z = 270;
+	print_vector(image);
+}
+
 void	init_mlx(t_vars *vars)
 {
 	vars->mlx = mlx_init();
@@ -164,6 +258,13 @@ void	init_mlx(t_vars *vars)
 	else if (vars->image.z_size > 10)
 		vars->image.z_size *= 0.7;
 	vars->image.default_z_size = vars->image.z_size;
+	set_vector(&vars->image);
+	// rotate_x_pos(&vars->image);
+	// rotate_x_neg(&vars->image);
+	// rotate_y_pos(&vars->image);
+	// rotate_y_neg(&vars->image);
+	// rotate_z_pos(&vars->image);
+	// rotate_z_neg(&vars->image);
 }
 
 void	draw_z(t_vars *vars, double x, double y, int z, double x1, double y1)
@@ -180,6 +281,7 @@ void	draw_z(t_vars *vars, double x, double y, int z, double x1, double y1)
 	xx = x;
 	for (int i = 0; i < size; i++)
 	{
+		xx = x + i * x1;
 		yy = y + i * y1;
 		for (int k = 0; k < vars->image.z_size * z * sign; k++)
 		{
@@ -226,8 +328,8 @@ void	draw_top(t_vars *vars, double x, double y)
 	yy = y;
 	for (int i = 0; i <= size; i++)
 	{
-		xx = x - (sqrt(3) / 2) * i;
-		yy = y + 0.5 * i;
+		xx = x + vars->image.vector_y[0] * i;
+		yy = y + vars->image.vector_y[1] * i;
 		for (int j = 0; j < size; j++)
 		{
 			double r = (double)(WIDTH - xx) / (WIDTH - 1);
@@ -237,8 +339,8 @@ void	draw_top(t_vars *vars, double x, double y)
 			if (j == 0 || j == size - 1 || i == 0 || i == size)
 				color = WH;
 			my_mlx_pixel_put(&vars->image, xx, yy, color);
-			xx += sqrt(3) / 2;
-			yy += 0.5;
+			xx += vars->image.vector_x[0];
+			yy += vars->image.vector_x[1];
 		}
 	}
 }
@@ -253,8 +355,8 @@ void	draw_3D(t_vars *vars, double x, double y, int z)
 	vars->image.dir = z / abs(z);
 	if (z < 0)
 		draw_top(vars, x, y - vars->image.z_size * z);	
-	draw_z(vars, x, y, z, sqrt(3) / 2, 0.5);
-	draw_z(vars, x - size * sqrt(3) / 2, y + size * 0.5, z, sqrt(3) / 2, -0.5);
+	draw_z(vars, x, y, z, vars->image.vector_x[0], vars->image.vector_x[1]);
+	draw_z(vars, x + size * vars->image.vector_y[0], y + size * vars->image.vector_y[1], z, sqrt(3) / 2, -0.5);
 	draw_z(vars, x + size * sqrt(3) / 2, y + size * 0.5, z, -sqrt(3) / 2, 0.5);
 	draw_z(vars, x, y + size, z, -sqrt(3) / 2, -0.5);
 	if (z > 0)
@@ -285,8 +387,8 @@ void	draw(t_vars *vars)
 	for (int j = 0; j <= size * vars->image.col; j++)
 	{
 		double diag = j;
-		double x = diag * cos(getRadian(30)) + vars->image.x;
-		double y = diag * sin(getRadian(30)) + vars->image.y;
+		double x = diag * vars->image.vector_x[0] + vars->image.x;
+		double y = diag * vars->image.vector_x[1] + vars->image.y;
 		double r = (double)(WIDTH - x) / (WIDTH - 1);
 		double g = (double)(y) / (HEIGHT - 1);
 		double b = 1;
@@ -297,8 +399,8 @@ void	draw(t_vars *vars)
 			for (int k = 0; k <= size * vars->image.row; k++)
 			{
 				double diag1 = k;
-				double x1 = x + diag1 * cos(getRadian(150));
-				double y1 = y + diag1 * sin(getRadian(150));
+				double x1 = x + diag1 * vars->image.vector_y[0];
+				double y1 = y + diag1 * vars->image.vector_y[1];
 				r = (double)(WIDTH - x1) / (WIDTH - 1);
 				g = (double)(y1) / (HEIGHT - 1);
 				b = 1; 
@@ -309,8 +411,8 @@ void	draw(t_vars *vars)
 					for (int l = 0; l <= size * vars->image.col; l++)
 					{
 						double diag2 = l;
-						double x2 = x1 + diag2 * cos(getRadian(30));
-						double y2 = y1 + diag2 * sin(getRadian(30));
+						double x2 = x1 + diag2 * vars->image.vector_x[0];
+						double y2 = y1 + diag2 * vars->image.vector_x[1];
 						r = (double)(WIDTH - x2) / (WIDTH - 1);
 						g = (double)(y2) / (HEIGHT - 1);
 						b = 1; 
@@ -324,15 +426,15 @@ void	draw(t_vars *vars)
 	idx = 0;
 	for (int i = 0; i < vars->image.row; i++)
 	{
-		double x = vars->image.x - size * (sqrt(3) / 2) * i;
-		double y = vars->image.y + size * 0.5 * i;
+		double x = vars->image.x + size * vars->image.vector_y[0] * i;
+		double y = vars->image.y + size * vars->image.vector_y[1] * i;
 		for (int j = 0; j < vars->image.col; j++)
 		{
 			int	temp = vars->image.read[idx++];
 			if (temp > 0)
 				draw_3D(vars, x, y, temp);
-			x += size * (sqrt(3) / 2);
-			y += size * 0.5;
+			x += size * vars->image.vector_x[0];
+			y += size * vars->image.vector_x[1];
 		}
 	}
 }
@@ -395,15 +497,12 @@ int	main(int argc, char **argv)
 
 	init_data(argc, argv, &vars);
 	init_mlx(&vars);
-	// printf("%d, %d\n", vars.image.bits_per_pixel, vars.image.line_length);
 	draw(&vars);
 	mlx_put_image_to_window(vars.mlx, vars.win, vars.image.img, 0, 0);
 	mlx_hook(vars.win, 17, 1L<<0, close_mlx, &vars);
 	mlx_key_hook(vars.win, key_hook, &vars);
 	mlx_mouse_hook(vars.win, mouse_hook, &vars);
 	mlx_loop(vars.mlx);
-	// for (int i = 0; i < vars.image.row * vars.image.col; i++)
-	// 	free(vars.image.read[i]);
 	free(vars.image.read);
 	mlx_destroy_image(vars.mlx, vars.image.img);
 	mlx_destroy_window(vars.mlx, vars.win);

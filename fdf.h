@@ -46,6 +46,12 @@ typedef struct s_data
 	int		default_z_size;
 	int		dir;
 	int		total;
+	int		angle_x;
+	int		angle_y;
+	int		angle_z;
+	double	vector_x[2];
+	double	vector_y[2];
+	double	vector_z[2];
 }		t_data;
 
 typedef struct	s_vars {
