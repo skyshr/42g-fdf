@@ -20,10 +20,12 @@
 # include "math.h"
 # define WIDTH 1500
 # define HEIGHT 1000
-# define WH 16777215
+# define WH 0xffffff
 # define GY 0xbebebe
 // # define AB 0xfffff0
 # define AB 0x191970
+# define BK 0x0
+# define ANG_1				0.01745329
 // "ivory" , 0xfffff0
 
 typedef struct s_data
@@ -49,9 +51,13 @@ typedef struct s_data
 	int		angle_x;
 	int		angle_y;
 	int		angle_z;
+	double	z_scale;
 	double	vector_x[2];
 	double	vector_y[2];
 	double	vector_z[2];
+	int		alpha;
+	int		beta;
+	int		gamma;
 }		t_data;
 
 typedef struct	s_vars {
