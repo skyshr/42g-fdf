@@ -82,5 +82,6 @@ void	rotate_y_pos(t_data *image);
 void	rotate_y_neg(t_data *image);
 void	set_vector(t_data *image);
 void	draw(t_vars *vars);
+void	orthogonal(t_vars *vars);
 
 #endif
